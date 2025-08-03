@@ -183,31 +183,18 @@
             return new Blob([view], { type: 'audio/wav' });
         }
 
-        async function fetchWithExponentialBackoff(url, options, retries = 3, delay = 1000) {
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) {
-                    if (response.status === 429 && retries > 0) {
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        return fetchWithExponentialBackoff(url, options, retries - 1, delay * 2);
-                    }
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
-                return response;
-            } catch (error) {
-                if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    return fetchWithExponentialBackoff(url, options, retries - 1, delay * 2);
-                }
-                throw error;
-            }
-        }
-
         async function playTopic(text, button) {
             loadingOverlay.classList.remove('hidden');
             button.disabled = true;
 
             try {
+                const apiKey = ""; // The API key is handled by the Canvas environment
+                const googleApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                
+                // Use a public CORS proxy to bypass browser security restrictions
+                const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
+                const proxiedUrl = proxyUrl + googleApiUrl;
+
                 const payload = {
                     contents: [{
                         parts: [{ text: `Say in a standard British English accent: ${text}` }]
@@ -217,14 +204,16 @@
                     },
                     model: "gemini-2.5-flash-preview-tts"
                 };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
                 
-                const response = await fetchWithExponentialBackoff(apiUrl, {
+                const response = await fetch(proxiedUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch. Status: ${response.status}`);
+                }
 
                 const result = await response.json();
                 const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -252,8 +241,8 @@
                 }
 
             } catch (error) {
-                console.error('Error fetching TTS:', error);
-                showErrorModal("An unexpected error occurred. Please check your connection and try again.");
+                console.error('Error fetching TTS via proxy:', error);
+                showErrorModal(error.message || "An unexpected error occurred. Please check your connection and try again.");
             } finally {
                 loadingOverlay.classList.add('hidden');
                 button.disabled = false;
