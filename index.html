@@ -3,251 +3,1048 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Version of 80 Topics (British English)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>MinuteTalk</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
+        /* Colour and Font Scheme using CSS Variables */
+        :root {
+            --primary-blue: #0079C2;
+            --accent-orange: #F5A623;
+            --secondary-grey: #888;
+            
+            /* Light Mode Palette (Default) */
+            --bg-color: #f0f4f8;
+            --container-bg: #FFFFFF;
+            --text-color: #4A4A4A;
+            --heading-color: #004AAD;
+            --light-grey: #EAEAEA;
+            --topic-frame-bg: #F0F8FF;
+            --subtle-text: #777;
+        }
+
+        body.dark-mode {
+            /* Dark Mode Palette */
+            --bg-color: #121212;
+            --container-bg: #1E1E1E;
+            --text-color: #EAEAEA;
+            --heading-color: #58a6ff;
+            --light-grey: #333;
+            --topic-frame-bg: #2A3B4D;
+            --subtle-text: #aaa;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
+            font-family: 'Lato', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
         }
-        .topic-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            margin-bottom: 2rem;
-            padding: 1.5rem;
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            min-height: 550px;
+            background-color: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: background-color 0.3s;
         }
-        .play-button {
-            transition: all 0.2s ease-in-out;
+
+        /* Screen Management */
+        .screen {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
         }
-        .play-button:disabled {
+
+        #intro-screen {
+            display: flex; /* Initially visible */
+        }
+        
+        #intro-screen img {
+            max-width: 150px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        
+        #intro-screen p {
+            max-width: 80%;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--heading-color);
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: #005a9e;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background-color: #ccc;
+            color: #666;
             cursor: not-allowed;
-            opacity: 0.6;
         }
-        .modal {
-            transition: opacity 0.25s ease;
+
+        .btn-accent {
+            background-color: var(--accent-orange);
         }
+        
+        .btn-accent:hover:not(:disabled) {
+            background-color: #D9901F;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-grey);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #666;
+        }
+        
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--subtle-text);
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* Start Screen */
+        .credits {
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 14px;
+            color: var(--subtle-text);
+        }
+        
+        #level-selection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        /* App Screen */
+        #topic-title {
+            border: 2px solid var(--primary-blue);
+            background-color: var(--topic-frame-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+        
+        #prompts-title {
+            color: var(--text-color);
+            margin-bottom: 5px;
+            align-self: flex-start;
+            margin-left: 5%;
+        }
+
+        #timer {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin: 10px 0;
+        }
+        
+        #word-count-display {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        
+        #controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #prompts-area {
+            background-color: var(--bg-color); /* Use main bg for contrast */
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            width: 90%;
+            text-align: left;
+            transition: background-color 0.3s;
+        }
+
+        #prompts-area p {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+        }
+        
+        #name-input {
+            padding: 10px;
+            border: 1px solid var(--light-grey);
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            border-radius: 5px;
+            width: 70%;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        
+        #leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        #leaderboard-table th, #leaderboard-table td {
+            border: 1px solid var(--light-grey);
+            padding: 12px;
+            text-align: left;
+        }
+        
+        #leaderboard-table th {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+        
+        /* THEME TOGGLE SWITCH */
+        .theme-switch-wrapper {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 26px;
+            position: relative;
+            width: 50px;
+        }
+        .theme-switch input { display:none; }
+        .slider {
+            background-color: #ccc;
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            transition: .4s;
+        }
+        .slider:before {
+            background-color: #fff;
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            transition: .4s;
+        }
+        input:checked + .slider { background-color: var(--primary-blue); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .slider.round { border-radius: 34px; }
+        .slider.round:before { border-radius: 50%; }
+        
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: var(--container-bg);
+            margin: auto;
+            padding: 20px 40px 40px 40px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-close-btn {
+            color: var(--subtle-text);
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        /* INFOGRAPHIC STYLES */
+        .infographic-flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .flow-box {
+            border: 2px solid var(--primary-blue);
+            background-color: var(--container-bg);
+            color: var(--heading-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            width: 12rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            align-self: center;
+            margin: 0 1rem;
+            transform: rotate(90deg);
+        }
+        @media (min-width: 768px) {
+            .infographic-flow {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+            .flow-box { margin-bottom: 0; }
+            .flow-arrow { transform: rotate(0); }
+        }
+
+        footer {
+            margin-top: auto;
+            padding-top: 20px;
+            font-size: 14px;
+        }
+
+        /* MOBILE OPTIMIZATIONS */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 15px;
+                min-height: 100vh;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            #timer {
+                font-size: 3rem;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+            
+            #intro-screen p {
+                max-width: 95%;
+            }
+        }
+
     </style>
 </head>
-<body class="text-gray-800">
+<body>
 
-    <div class="container mx-auto p-4 md:p-8">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-[#004AAD] mb-2">Listen to the Topics</h1>
-            <p class="text-lg text-gray-600">Click the "Listen" button next to each topic to hear it read aloud in a British English accent.</p>
-        </header>
-
-        <div id="topics-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+    <div class="app-container">
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="theme-toggle">
+                <input type="checkbox" id="theme-toggle" />
+                <div class="slider round"></div>
+            </label>
         </div>
 
-        <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-            <div class="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
-                <svg class="animate-spin h-8 w-8 text-[#004AAD]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span class="text-lg font-medium">Generating Audio...</span>
+        <div id="intro-screen" class="screen">
+            <header>
+                <h1>Welcome to MinuteTalk</h1>
+            </header>
+            <img src="1.png" alt="Speaking practice illustration">
+            <p>Test your speaking skills for one minute on a random topic. The app will count your words. Use prompts if you get stuck, but be careful—they come with a penalty! Click below to start.</p>
+            <button id="get-started-btn" class="btn btn-accent">Get Started</button>
+            <button id="teacher-info-btn" class="btn-link">For the Teacher</button>
+        </div>
+
+        <div id="start-screen" class="screen">
+            <header>
+                <h1>MinuteTalk</h1>
+                <h3>Choose your proficiency level to begin.</h3>
+                <div class="credits">
+                    <i>Panagiotis Domvros, English and Drama Teacher © 2025</i>
+                </div>
+            </header>
+            
+            <div id="level-selection">
+                <button class="btn" data-level="Elementary">Elementary</button>
+                <button class="btn" data-level="Intermediate">Intermediate</button>
+                <button class="btn" data-level="Upper-Intermediate">Upper-Intermediate</button>
+                <button class="btn" data-level="Advanced">Advanced</button>
+            </div>
+            
+            <button id="view-leaderboard-btn" class="btn btn-accent">View Personal Best</button>
+        </div>
+
+        <div id="app-screen" class="screen">
+            <h2 id="topic-title">Your Topic Will Appear Here</h2>
+            <div id="timer">1:00</div>
+            <p id="word-count-display">Word Count: <span id="word-count">0</span></p>
+            <h4 id="prompts-title">Prompts</h4>
+            <div id="prompts-area">
+                <p>Your first prompt will appear here automatically.</p>
+            </div>
+            <div id="controls">
+                <button id="change-topic-btn" class="btn btn-secondary">Change Topic</button>
+                <button id="start-btn" class="btn btn-accent">Start Speaking</button>
+                <button id="prompt-btn" class="btn" disabled>Use Free Prompt</button>
+            </div>
+            <p id="status-message">Click "Start Speaking" when you're ready.</p>
+        </div>
+
+        <div id="results-screen" class="screen">
+            <h2>Time's Up!</h2>
+            <div id="results-summary">
+                <p>Total Words: <span id="total-words-result">0</span></p>
+                <p>Prompts Used (after free one): <span id="prompts-used-result">0</span></p>
+                <p>Penalty: <span id="penalty-result">0</span> words</p>
+                <h2>Final Score: <span id="final-score-result">0</span></h2>
+            </div>
+            <div>
+                <input type="text" id="name-input" placeholder="Enter your name to save score">
+                <button id="submit-score-btn" class="btn">Add to Personal Best</button>
+            </div>
+            <div>
+                <button id="try-another-btn" class="btn btn-accent">Try Another Topic</button>
+                <button id="main-menu-btn" class="btn">Main Menu</button>
             </div>
         </div>
         
-        <div id="error-modal" class="modal hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <div class="mt-3 text-center">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                        <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    </div>
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Audio Generation Failed</h3>
-                    <div class="mt-2 px-7 py-3">
-                        <p id="error-message" class="text-sm text-gray-500">An error occurred while trying to generate the audio. Please try again.</p>
-                    </div>
-                    <div class="items-center px-4 py-3">
-                        <button id="close-modal-button" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
-                            OK
-                        </button>
-                    </div>
+        <div id="leaderboard-screen" class="screen">
+            <h2>Personal Best</h2>
+            <table id="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Score</th>
+                        <th>Level</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    </tbody>
+            </table>
+            <button id="back-to-start-btn" class="btn">Back to Main Menu</button>
+        </div>
+
+        <footer>
+            ✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher © 2025✍️✨
+        </footer>
+    </div>
+    
+    <div id="infographic-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span id="close-modal-btn" class="modal-close-btn">&times;</span>
+            <h2 style="text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem;">From Concrete to Abstract: The Learner's Path</h2>
+            <p style="text-align: center; font-size: 1.125rem; font-weight: 600; color: var(--subtle-text); margin-bottom: 1.5rem;">4 Proficiency Levels, 80 Topics</p>
+            <p style="text-align: center; margin-bottom: 2rem;">The curriculum is intentionally designed to build complexity, guiding learners from talking about themselves and their immediate world to discussing complex societal and philosophical ideas.</p>
+            <div class="infographic-flow">
+                <div class="flow-box">
+                    <h3 style="font-weight: bold; font-size: 1.125rem;">Concrete</h3>
+                    <p style="font-size: 0.875rem;">Family, Food, Favourites</p>
+                </div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-box">
+                    <h3 style="font-weight: bold; font-size: 1.125rem;">Experiential</h3>
+                    <p style="font-size: 0.875rem;">Memories, Hobbies, Events</p>
+                </div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-box">
+                    <h3 style="font-weight: bold; font-size: 1.125rem;">Analytical</h3>
+                    <p style="font-size: 0.875rem;">Opinions, Pros/Cons, Advice</p>
+                </div>
+                <div class="flow-arrow">&rarr;</div>
+                <div class="flow-box">
+                    <h3 style="font-weight: bold; font-size: 1.125rem;">Abstract</h3>
+                    <p style="font-size: 0.875rem;">Ethics, Society, Philosophy</p>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        const topics = {
-            "Elementary": [
-                "Your favourite colour.", "Your family.", "Your pet.", "Your favourite food.", "Your school.", "Your best friend.", "A toy you like.", "Your favourite animal.", "Your birthday.", "Your favourite fruit.", "A game you like to play.", "Your bedroom.", "The weather today.", "Your favourite holiday.", "What you did yesterday.", "Your favourite cartoon.", "Things you do in the morning.", "Your favourite piece of clothing.", "A place you like to go.", "What you want to be when you grow up."
-            ],
-            "Intermediate": [
-                "Your favourite season and why.", "A recent movie you watched.", "Your favourite hobby.", "A place you have visited.", "Your daily routine.", "The best gift you have ever received.", "A food you could eat every day.", "Your favourite childhood memory.", "A time you felt very happy.", "Your dream vacation.", "Something you are good at.", "Your favourite type of music.", "The last book you read.", "A person you admire.", "If you could have any superpower, what would it be and why?", "Your plans for the upcoming weekend.", "Something that makes you laugh.", "A challenge you have overcome.", "Your favourite subject in school and why.", "A family tradition you enjoy."
-            ],
-            "Upper-Intermediate": [
-                "A book or movie that changed your perspective.", "The pros and cons of social media.", "A historical event that fascinates you.", "What does it mean to be a good friend?", "The most important lesson you've learned in life so far.", "A time you learned something the hard way.", "If you could give one piece of advice to a younger person, what would it be?", "The importance of learning a foreign language.", "A technology you believe has changed the world for the better (or worse).", "Your definition of success.", "How do you deal with stress?", "A place you would love to live in for a year.", "The role of sports in society.", "A song that brings back strong memories.", "The qualities of a great leader.", "An environmental issue you are concerned about.", "The best and worst parts of your daily routine.", "How has technology changed education?", "A personal goal you are currently working towards.", "The difference between being a tourist and a traveller."
-            ],
-            "Advanced": [
-                "Discuss the ethical implications of artificial intelligence.", "\"Travel is the only thing you buy that makes you richer.\" Do you agree or disagree?", "The role of government in ensuring the well-being of its citizens.", "Is it more important to be liked or to be respected?", "The impact of globalization on local cultures.", "Can censorship ever be justified?", "The relationship between art and society.", "What is the most significant challenge facing humanity in the 21st century?", "\"The unexamined life is not worth living.\" (Socrates) What does this mean to you?", "Discuss the concept of \"privilege\" and its effect on an individual's life.", "Should higher education be free for everyone?", "The psychological effects of living in a hyper-connected world.", "What is the meaning of a \"fulfilling life\"?", "The balance between individual freedom and collective responsibility.", "How do you think work will change in the next 50 years?", "Is space exploration a worthwhile investment?", "The morality of genetic engineering.", "Discuss the philosophical concept of happiness.", "The influence of media on political discourse.", "If you could change one thing about your country's political or social system, what would it be and why?"
-            ]
-        };
+        document.addEventListener('DOMContentLoaded', () => {
 
-        const topicsContainer = document.getElementById('topics-container');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const errorModal = document.getElementById('error-modal');
-        const closeModalButton = document.getElementById('close-modal-button');
-        const errorMessageElement = document.getElementById('error-message');
+            // ===== 1. DATA: TOPICS AND PROMPTS =====
+            const topics = {
+                'Elementary': [{
+                    title: 'Your favourite colour.',
+                    prompts: ['What is your favourite colour?', 'What things can you think of that are this colour?', 'How does this colour make you feel?', 'If you could paint your room, would you choose this colour?', 'What is a colour you don\'t like very much?']
+                }, {
+                    title: 'Your family.',
+                    prompts: ['Who is in your family?', 'What is something fun you do together as a family?', 'Tell me one special thing about someone in your family.', 'What is the best thing about being in your family?', 'Do you look more like your mother or your father?']
+                }, {
+                    title: 'Your pet.',
+                    prompts: ['What kind of pet do you have and what is its name?', 'What does your pet like to do?', 'How do you take care of your pet?', 'If your pet could talk, what would it say?', 'What is the funniest thing your pet has ever done?']
+                }, {
+                    title: 'Your favourite food.',
+                    prompts: ['What is your favourite food to eat?', 'Who makes it for you, or where do you get it?', 'Why do you like it so much?', 'Is this food easy or difficult to make?', 'What do you usually drink with this food?']
+                }, {
+                    title: 'Your school.',
+                    prompts: ['What is the name of your school?', 'What is your favourite place in your school (e.g., library, playground)?', 'What is one thing you learned at school recently?', 'Who is your favourite teacher and why?', 'What is one rule at your school?']
+                }, {
+                    title: 'Your best friend.',
+                    prompts: ['Who is your best friend?', 'What games or activities do you like to do together?', 'What makes them a good friend?', 'How did you meet your best friend?', 'If your friend was sad, how would you cheer them up?']
+                }, {
+                    title: 'A toy you like.',
+                    prompts: ['What is your favourite toy?', 'Where did you get it?', 'Why is it fun to play with?', 'Do you share this toy with anyone?', 'If you lost this toy, would you be sad?']
+                }, {
+                    title: 'Your favourite animal.',
+                    prompts: ['What is your favourite animal?', 'What does it look like and what sounds does it make?', 'Where in the world does this animal live?', 'If you could have this animal as a pet, would you want to?', 'Is this animal dangerous or friendly?']
+                }, {
+                    title: 'Your birthday.',
+                    prompts: ['When is your birthday?', 'How did you celebrate your last birthday?', 'What is the best thing about birthdays?', 'What is your favourite kind of birthday cake?', 'What gift would you like to get for your next birthday?']
+                }, {
+                    title: 'Your favourite fruit.',
+                    prompts: ['What is your favourite fruit?', 'What does it look, feel, and taste like?', 'How do you like to eat it?', 'Is this fruit sweet or sour?', 'Where does this fruit grow?']
+                }, {
+                    title: 'A game you like to play.',
+                    prompts: ['What is a game you love to play?', 'What are the rules of the game?', 'Who do you usually play it with?', 'Can you play this game inside or outside?', 'Do you need any special things to play this game?']
+                }, {
+                    title: 'Your bedroom.',
+                    prompts: ['What colour is your bedroom?', 'What are three things you have in your room?', 'What do you like most about your room?', 'Is your room usually clean or messy?', 'What do you see from your bedroom window?']
+                }, {
+                    title: 'The weather today.',
+                    prompts: ['What is the weather like outside right now?', 'What kind of clothes should you wear for this weather?', 'What is your favourite type of weather and why?', 'Do you like this kind of weather?', 'What is one fun activity to do in this weather?']
+                }, {
+                    title: 'Your favourite holiday.',
+                    prompts: ['What is your favourite holiday?', 'What special things do you do on this day?', 'What foods do you eat to celebrate?', 'What colours do you think of for this holiday?', 'Do you spend this holiday with your family or friends?']
+                }, {
+                    title: 'What you did yesterday.',
+                    prompts: ['What was the first thing you did when you woke up yesterday?', 'What was the most interesting part of your day?', 'What did you do before you went to sleep?', 'Did you learn anything new yesterday?', 'What was the best thing you ate yesterday?']
+                }, {
+                    title: 'Your favourite cartoon.',
+                    prompts: ['What is your favourite cartoon show?', 'Who is your favourite character in the show?', 'What is a funny or exciting thing that happened in the cartoon?', 'What is the show\'s theme song like?', 'If you could be a character in the show, who would you be?']
+                }, {
+                    title: 'Things you do in the morning.',
+                    prompts: ['What time do you wake up?', 'What do you do to get ready for school or the day?', 'What do you usually eat for breakfast?', 'Are you fast or slow in the morning?', 'What is the first sound you hear in the morning?']
+                }, {
+                    title: 'Your favourite piece of clothing.',
+                    prompts: ['What is your favourite thing to wear?', 'What does it look like?', 'Where do you like to wear it?', 'How do you feel when you wear it?', 'What is it made of?']
+                }, {
+                    title: 'A place you like to go.',
+                    prompts: ['What is a place you enjoy visiting (like a park, museum, or a relative\'s house)?', 'What do you do when you are there?', 'Why do you like it so much?', 'How do you get to this place?', 'Who do you usually go there with?']
+                }, {
+                    title: 'What you want to be when you grow up.',
+                    prompts: ['What job do you want to have in the future?', 'What does a person with that job do?', 'Why do you want to do that job?', 'Is this job easy or difficult?', 'Do you need to go to college to do this job?']
+                }, ],
+                'Intermediate': [{
+                    title: 'Your favourite season and why.',
+                    prompts: ['Which of the four seasons is your favourite?', 'What is the weather like and what activities can you do during that season?', 'What special memories or feelings do you associate with it?', 'What kind of clothes do you wear during this season?', 'Describe the sounds and smells you associate with this season.']
+                }, {
+                    title: 'A recent film you watched.',
+                    prompts: ['What was the name of the film and what was its genre?', 'Briefly, what was the plot or main story?', 'Would you recommend it to a friend? Why or why not?', 'Who was your favourite actor in the film and why?', 'If you could change the ending, how would it end?']
+                }, {
+                    title: 'Your favourite hobby.',
+                    prompts: ['What is your favourite hobby?', 'How much time do you spend on it each week?', 'What do you enjoy most about this activity?', 'Did you teach yourself this hobby or did someone teach you?', 'Is this an expensive or inexpensive hobby?']
+                }, {
+                    title: 'A place you have visited.',
+                    prompts: ['Describe a memorable city or country you have travelled to.', 'What were the highlights of your trip?', 'How was it different from your hometown?', 'What was the food like in this place?', 'What is one thing you learned from visiting there?']
+                }, {
+                    title: 'Your daily routine.',
+                    prompts: ['Describe your typical weekday from morning to night.', 'What part of your day is the busiest?', 'If you could change one part of your routine, what would it be?', 'What is the most relaxing part of your day?', 'How does your routine change on the weekends?']
+                }, {
+                    title: 'The best gift you have ever received.',
+                    prompts: ['What was the gift and who gave it to you?', 'What was the occasion?', 'Why was this gift so meaningful to you?', 'How did you react when you received it?', 'Do you still have or use this gift?']
+                }, {
+                    title: 'A food you could eat every day.',
+                    prompts: ['What is one food you would never get tired of eating?', 'What are the ingredients and how is it prepared?', 'What memories or feelings does this food evoke?', 'Describe the smell and texture of this food.', 'What makes it better than other, similar foods?']
+                }, {
+                    title: 'Your favourite childhood memory.',
+                    prompts: ['Describe a specific, happy memory from when you were a child.', 'Who was with you and where were you?', 'Why has this memory stayed with you?', 'How old were you when this memory happened?', 'Why do you think this particular memory is so strong?']
+                }, {
+                    title: 'A time you felt very happy.',
+                    prompts: ['Think of a specific time you felt pure joy. What was happening?', 'What led up to this moment?', 'How did you celebrate or express your happiness?', 'Did you share this happy moment with anyone?', 'How long did the feeling of happiness last?']
+                }, {
+                    title: 'Your dream vacation.',
+                    prompts: ['If you could go anywhere in the world, where would you go?', 'Who would you take with you?', 'What are three things you would want to see or do there?', 'What kind of activities would you do every day?', 'What souvenirs would you bring back from there?']
+                }, {
+                    title: 'Something you are good at.',
+                    prompts: ['What is a skill or talent you possess?', 'How did you discover and develop this ability?', 'How do you use this skill in your life?', 'Is this a common or an unusual skill?', 'Have you ever taught this skill to someone else?']
+                }, {
+                    title: 'Your favourite type of music.',
+                    prompts: ['What genre of music do you enjoy most?', 'Name a favourite artist or band from that genre.', 'How does this music make you feel when you listen to it?', 'Where do you usually listen to music?', 'Does this music help you concentrate or relax?']
+                }, {
+                    title: 'The last book you read.',
+                    prompts: ['What was the title and author of the book?', 'What was the main theme or message of the story?', 'What was your favourite character or part of the book?', 'Did the book have a satisfying ending?', 'How long did it take you to read it?']
+                }, {
+                    title: 'A person you admire.',
+                    prompts: ['Who is someone you look up to (can be famous or someone you know)?', 'What specific qualities do you admire in this person?', 'How has this person influenced you?', 'Have you ever met this person?', 'What is one thing you would ask them if you could?']
+                }, {
+                    title: 'If you could have any superpower, what would it be and why?',
+                    prompts: ['What superpower would you choose?', 'How would you use this power to help others?', 'What would be a fun, everyday use for your power?', 'What would be the biggest disadvantage of your chosen superpower?', 'Which supervillain would be your biggest enemy?']
+                }, {
+                    title: 'Your plans for the upcoming weekend.',
+                    prompts: ['What are you planning to do this Saturday and Sunday?', 'Are you looking forward to anything in particular?', 'How do your weekend plans differ from your weekday routine?', 'Will you spend the weekend relaxing or being productive?', 'Who will you spend your time with?']
+                }, {
+                    title: 'Something that makes you laugh.',
+                    prompts: ['Describe something that you find very funny (a joke, a video, a memory).', 'Why does it make you laugh?', 'Is it important to have a good sense of humour?', 'Is it funny to other people too?', 'Can you laugh at yourself when you make a mistake?']
+                }, {
+                    title: 'A challenge you have overcome.',
+                    prompts: ['What was a difficult challenge you faced?', 'What steps did you take to overcome it?', 'What did you learn from the experience?', 'Who helped you overcome this challenge?', 'How did you feel after you overcame it?']
+                }, {
+                    title: 'Your favourite subject in school and why.',
+                    prompts: ['Which subject do you enjoy the most?', 'What do you find interesting about it?', 'How might this subject be useful in your future?', 'Do you think this subject will be important for your future career?', 'What is the most difficult thing about this subject?']
+                }, {
+                    title: 'A family tradition you enjoy.',
+                    prompts: ['Describe a special tradition your family has.', 'When and how do you celebrate it?', 'Why is this tradition important to you?', 'How did this tradition start?', 'Will you continue this tradition with your own family in the future?']
+                }, ],
+                'Upper-Intermediate': [{
+                    title: 'A book or film that changed your perspective.',
+                    prompts: ['What was the book or film?', 'What was your original perspective on the topic?', 'How did the story or message challenge your thinking?', 'Did you recommend it to others after you finished it?', 'How might your life be different if you hadn\'t experienced it?']
+                }, {
+                    title: 'The pros and cons of social media.',
+                    prompts: ['What are the main advantages of using social media platforms?', 'What are the most significant disadvantages or dangers?', 'Overall, do you think its impact is more positive or negative?', 'How has social media changed friendships and social interactions?', 'What responsibility do social media companies have to police their content?']
+                }, {
+                    title: 'A historical event that fascinates you.',
+                    prompts: ['Which event in history do you find most interesting?', 'Why does it capture your attention?', 'If you could witness it, what would you want to see?', 'What are the most common misconceptions about this event?', 'How does this event still affect the world today?']
+                }, {
+                    title: 'What does it mean to be a good friend?',
+                    prompts: ['What are the three most important qualities of a good friend?', 'Describe a time a friend demonstrated these qualities.', 'How has your definition of friendship changed over time?', 'Is it more important for a friend to be honest or to be kind?', 'Can you be good friends with someone who has very different values?']
+                }, {
+                    title: 'The most important lesson you\'ve learned in life so far.',
+                    prompts: ['What is the lesson?', 'How did you learn it?', 'How has this lesson guided your decisions?', 'Is this a lesson that most people have to learn for themselves?', 'How has this lesson impacted your relationships with others?']
+                }, {
+                    title: 'A time you learned something the hard way.',
+                    prompts: ['Describe the situation and the mistake you made.', 'What were the consequences of your actions?', 'What did this experience teach you about yourself or about life?', 'Would you have listened if someone had given you advice beforehand?', 'Did this experience make you more cautious or more resilient?']
+                }, {
+                    title: 'If you could give one piece of advice to a younger person, what would it be?',
+                    prompts: ['What is the piece of advice?', 'Why do you think this advice is so important?', 'How would following this advice have helped you when you were younger?', 'Give a specific example of how this advice would have helped you.', 'Why is it often difficult for younger people to accept advice?']
+                }, {
+                    title: 'The importance of learning a foreign language.',
+                    prompts: ['Beyond communication, what are the benefits of being bilingual or multilingual?', 'How does it change the way you see the world or other cultures?', 'What challenges do people face when learning a new language?', 'What is the most effective way to become fluent in a new language?', 'Does knowing another language change your personality?']
+                }, {
+                    title: 'A technology you believe has changed the world for the better (or worse).',
+                    prompts: ['Which technology have you chosen?', 'Explain its positive impacts on society.', 'Now, discuss its negative consequences or potential risks.', 'Can the negative effects of this technology be mitigated? How?', 'What might the next evolution of this technology look like?']
+                }, {
+                    title: 'Your definition of success.',
+                    prompts: ['How do you personally define success? Is it about money, happiness, or something else?', 'Do you think society\'s definition of success is healthy?', 'Who is a person you consider successful according to your definition, and why?', 'Has your definition of success changed as you\'ve gotten older?', 'Can a person be successful but not happy?']
+                }, {
+                    title: 'How do you deal with stress?',
+                    prompts: ['What are your main sources of stress?', 'What are some healthy coping mechanisms you use?', 'What advice would you give to someone who is feeling overwhelmed?', 'Is a certain amount of stress good for you?', 'What is the difference between healthy pressure and unhealthy stress?']
+                }, {
+                    title: 'A place you would love to live in for a year.',
+                    prompts: ['Which city or country would you choose?', 'What attracts you to this place?', 'What do you think would be the biggest challenge of living there?', 'How would you prepare for such a move?', 'What do you think you would learn about yourself from this experience?']
+                }, {
+                    title: 'The role of sports in society.',
+                    prompts: ['How do sports bring people together?', 'What values can be learned from participating in sports?', 'Are professional athletes paid too much? Justify your opinion.', 'Do sports reflect the values of a society, or do they shape them?', 'What are the pros and cons of a highly competitive sports culture for children?']
+                }, {
+                    title: 'A song that brings back strong memories.',
+                    prompts: ['What is the song?', 'Describe the specific memory or feeling it triggers.', 'Why do you think music has such a powerful connection to memory?', 'Is the memory happy, sad, or a mix of both?', 'If that song were the soundtrack to a film scene, what would be happening in the scene?']
+                }, {
+                    title: 'The qualities of a great leader.',
+                    prompts: ['What are the top three characteristics of an effective leader?', 'Can leadership be learned, or are people born leaders?', 'Describe someone you know or have read about who exemplifies these qualities.', 'Is it more important for a leader to be confident or to be humble?', 'Describe a situation where poor leadership led to a bad outcome.']
+                }, {
+                    title: 'An environmental issue you are concerned about.',
+                    prompts: ['Which issue (e.g., climate change, plastic pollution) worries you most?', 'What are the causes and effects of this problem?', 'What can individuals do to help address this issue?', 'What role should corporations play in solving this issue versus governments?', 'Do you feel optimistic or pessimistic about our ability to solve this problem?']
+                }, {
+                    title: 'The best and worst parts of your daily routine.',
+                    prompts: ['What is the part of your day you look forward to the most?', 'What is the part you find most challenging or boring?', 'How could you improve the worst part of your day?', 'What small change could you make to significantly improve your day?', 'How does your mood in the morning affect the rest of your day?']
+                }, {
+                    title: 'How has technology changed education?',
+                    prompts: ['What are the benefits of using technology in the classroom?', 'What are the potential drawbacks or challenges?', 'Do you prefer traditional or technology-based learning?', 'Has technology made students more knowledgeable or just better at finding information?', 'What is the role of the teacher in a technology-driven classroom?']
+                }, {
+                    title: 'A personal goal you are currently working towards.',
+                    prompts: ['What is the goal?', 'What steps are you taking to achieve it?', 'What is your main motivation for reaching this goal?', 'What obstacles, if any, are standing in your way?', 'How will you celebrate once you achieve this goal?']
+                }, {
+                    title: 'The difference between being a tourist and a traveller.',
+                    prompts: ['In your opinion, what is the main difference?', 'Describe the mindset or behaviour of a tourist versus a traveller.', 'Which one do you identify with more when you visit a new place?', 'What are the responsibilities of a traveller when visiting a new culture?', 'Can a person be both a tourist and a traveller on the same trip?']
+                }, ],
+                'Advanced': [{
+                    title: 'Discuss the ethical implications of artificial intelligence.',
+                    prompts: ['What are the potential benefits of advanced AI for humanity?', 'What are the most significant ethical risks, such as job displacement or autonomous weapons?', 'Who should be responsible for regulating AI development?', 'To what extent should an AI be held responsible for its mistakes?', 'Does the pursuit of superintelligence pose an existential threat to humanity?']
+                }, {
+                    title: '"Travel is the only thing you buy that makes you richer." Do you agree or disagree?',
+                    prompts: ['Explain the meaning of this quote.', 'Provide arguments to support your position (agree or disagree).', 'Are there other non-material purchases that can also make a person "richer"?', 'Discuss the concept of "richness" in a non-material sense.', 'Can travel sometimes have a negative or "impoverishing" effect on a person?']
+                }, {
+                    title: 'The role of government in ensuring the well-being of its citizens.',
+                    prompts: ['What are the fundamental responsibilities of a government towards its people?', 'Where should the line be drawn between government support and individual responsibility?', 'Discuss one area where you think your government is succeeding or failing in this role.', 'Discuss the tension between universal social programmes and the economic burden they may create.', 'Is a "nanny state" a legitimate concern, or a term used to argue against social responsibility?']
+                }, {
+                    title: 'Is it more important to be liked or to be respected?',
+                    prompts: ['Define the difference between being liked and being respected.', 'Argue which you believe is more valuable in the long term and why.', 'Can a person have both? Is it possible to be respected without being liked?', 'In a professional setting, which quality leads to greater long-term success?', 'Discuss a public figure who is widely respected but not necessarily liked.']
+                }, {
+                    title: 'The impact of globalisation on local cultures.',
+                    prompts: ['In what ways has globalisation led to cultural homogenisation (cultures becoming more similar)?', 'Conversely, how has it helped preserve or spread local cultures?', 'Overall, is globalisation a threat or a benefit to cultural diversity?', 'Is it possible to embrace globalisation while fiercely protecting a unique cultural identity?', 'Discuss the concept of a "global citizen." What does it mean to you?']
+                }, {
+                    title: 'Can censorship ever be justified?',
+                    prompts: ['Discuss situations where some might argue censorship is necessary (e.g., hate speech, national security).', 'What are the dangers of allowing governments or corporations to censor information?', 'Where do you personally draw the line between free speech and harmful content?', 'Who should have the authority to decide what content is censored?', 'Discuss the "slippery slope" argument in the context of censorship.']
+                }, {
+                    title: 'The relationship between art and society.',
+                    prompts: ['Does art reflect the society it was created in, or does it shape society?', 'Provide an example of a piece of art that caused social change or controversy.', 'What is the purpose of art in the modern world?', 'Should art be funded by the government?', 'Does art have a moral responsibility?']
+                }, {
+                    title: 'What is the most significant challenge facing humanity in the 21st century?',
+                    prompts: ['Identify the challenge you believe is most critical (e.g., climate change, inequality, political instability).', 'Explain the global scale and complexity of this problem.', 'What kind of international cooperation is needed to address it?', 'Why do you believe your chosen challenge is more critical than others, such as poverty or disease?', 'Propose a radical, "outside-the-box" idea to begin addressing this challenge.']
+                }, {
+                    title: '"The unexamined life is not worth living." (Socrates) What does this mean to you?',
+                    prompts: ['Explain your interpretation of this philosophical statement.', 'What are some ways a person can "examine" their life?', 'Do you agree with Socrates? Why is self-reflection important?', 'Is it possible for someone to live a happy and good life without deep self-reflection?', 'What are the potential downsides of excessive self-examination?']
+                }, {
+                    title: 'Discuss the concept of "privilege" and its effect on an individual\'s life.',
+                    prompts: ['What does the term "privilege" mean in a social context?', 'How can being born into certain circumstances (e.g., wealth, nationality) grant unearned advantages?', 'Why is it often difficult for people to recognise their own privilege?', 'How can a person use their privilege to advocate for those who have less?', 'What is the difference between acknowledging privilege and feeling guilty about it?']
+                }, {
+                    title: 'Should higher education be free for everyone?',
+                    prompts: ['Present the main arguments in favour of tuition-free university education.', 'Present the main arguments against it.', 'What is your own conclusion, and what model do you think is best for society?', 'If universities were free, how should they decide on admissions?', 'What would be the broader economic and social consequences of a fully educated populace?']
+                }, {
+                    title: 'The psychological effects of living in a hyper-connected world.',
+                    prompts: ['How does constant access to information and social media affect mental health?', 'Discuss the concepts of "fear of missing out" (FOMO) and the "attention economy."', 'What strategies can people use to maintain a healthy balance with technology?', 'How does the curated perfection of social media affect our perception of our own lives?', 'Discuss the value of solitude and "disconnecting" in the modern age.']
+                }, {
+                    title: 'What is the meaning of a "fulfilling life"?',
+                    prompts: ['Is there a universal definition, or is it unique to each individual?', 'What are the key components you believe are necessary for a fulfilling life (e.g., purpose, relationships, growth)?', 'How does this concept differ from simply a "happy life"?', 'Is a fulfilling life synonymous with a life of impact and legacy?', 'Can a simple, quiet life be just as fulfilling as a life of grand achievements?']
+                }, {
+                    title: 'The balance between individual freedom and collective responsibility.',
+                    prompts: ['Use a specific example (like vaccine mandates or environmental regulations) to explore this conflict.', 'When should an individual\'s right to choose be limited for the good of the community?', 'Who should decide where to draw that line?', 'How do different political systems (e.g., libertarianism vs. socialism) prioritise these two values?', 'Is the "social contract" a real, implicit agreement or a philosophical fiction?']
+                }, {
+                    title: 'How do you think work will change in the next 50 years?',
+                    prompts: ['Discuss the potential impacts of automation and AI on the job market.', 'What new skills will be most valuable in the future workforce?', 'Consider concepts like the gig economy, remote work, and universal basic income.', 'Will the concept of a "career for life" become completely obsolete?', 'How should education systems adapt to prepare students for a future job market that is hard to predict?']
+                }, {
+                    title: 'Is space exploration a worthwhile investment?',
+                    prompts: ['What are the arguments for spending billions on space programmes?', 'What are the arguments against it, suggesting the money could be better spent on Earth?', 'What is your personal stance on this issue?', 'Discuss the potential for unforeseen technological spin-offs from space programmes.', 'Is it a moral imperative for humanity to become a multi-planetary species?']
+                }, {
+                    title: 'The morality of genetic engineering.',
+                    prompts: ['What are the potential benefits of technologies like CRISPR (e.g., curing genetic diseases)?', 'What are the ethical concerns, especially regarding "designer babies" or unforeseen consequences?', 'Should there be international laws to regulate human genetic modification?', 'Where do we draw the line between therapy (curing disease) and enhancement (improving traits)?', 'What unforeseen social divisions could arise from genetic enhancement being available only to the wealthy?']
+                }, {
+                    title: 'Discuss the philosophical concept of happiness.',
+                    prompts: ['Is happiness an emotional state, a long-term state of being, or something else?', 'Contrast different philosophical views on happiness (e.g., hedonism vs. eudaimonia).', 'What is the relationship between happiness and suffering?', 'Is happiness something to be pursued directly, or is it a byproduct of other activities?', 'Can a person be truly happy if there is immense suffering in the world around them?']
+                }, {
+                    title: 'The influence of media on political discourse.',
+                    prompts: ['How have social media and the 24-hour news cycle changed how we discuss politics?', 'Discuss the problems of "echo chambers" and misinformation.', 'What responsibility does the media have to promote informed and civil debate?', 'Has the decline of traditional journalism and the rise of opinion-based news been detrimental to democracy?', 'What skills do citizens need to navigate the modern media landscape effectively?']
+                }, {
+                    title: 'If you could change one thing about your country\'s political or social system, what would it be and why?',
+                    prompts: ['Clearly identify the system or policy you would change.', 'Explain the problems with the current system.', 'Describe how your proposed change would lead to a better society.', 'What would be the biggest obstacles to implementing your proposed change?', 'Who would be the biggest opponents of your change, and what would their arguments be?']
+                }, ]
+            };
 
-        closeModalButton.onclick = () => errorModal.classList.add('hidden');
+            // ===== 2. STATE MANAGEMENT =====
+            let currentLevel = '';
+            let currentTopic = {};
+            let promptsUsed = 0;
+            let liveWordCount = 0;
+            let finalScore = 0;
+            let timerInterval;
+            let penalty = 0;
+            let finalTranscript = '';
+            let isSpeaking = false;
+            let topicChangesLeft = 2;
 
-        function showErrorModal(message) {
-            errorMessageElement.textContent = message;
-            errorModal.classList.remove('hidden');
-        }
-
-        Object.keys(topics).forEach(level => {
-            const card = document.createElement('div');
-            card.className = 'topic-card';
-
-            const title = document.createElement('h2');
-            title.className = 'text-2xl font-bold text-[#004AAD] mb-4 border-b-2 border-[#0079C2] pb-2';
-            title.textContent = level;
-            card.appendChild(title);
-
-            const list = document.createElement('ul');
-            list.className = 'space-y-3';
-            topics[level].forEach(topic => {
-                const listItem = document.createElement('li');
-                listItem.className = 'flex items-center justify-between';
-
-                const topicText = document.createElement('span');
-                topicText.className = 'flex-1 mr-4';
-                topicText.textContent = topic;
-                listItem.appendChild(topicText);
-
-                const button = document.createElement('button');
-                button.className = 'play-button bg-[#0079C2] hover:bg-[#00AEEF] text-white font-bold py-2 px-4 rounded-full flex items-center';
-                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg> Listen`;
-                button.onclick = () => playTopic(topic, button);
-                listItem.appendChild(button);
-
-                list.appendChild(listItem);
-            });
-
-            card.appendChild(list);
-            topicsContainer.appendChild(card);
-        });
-        
-        function base64ToArrayBuffer(base64) {
-            const binaryString = window.atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
+            // ===== 3. SPEECH RECOGNITION SETUP =====
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-GB';
+            } else {
+                alert("Sorry, your browser does not support Speech Realisation. Please use Google Chrome or Microsoft Edge.");
+                return;
             }
-            return bytes.buffer;
-        }
 
-        function pcmToWav(pcmData, sampleRate) {
-            const numChannels = 1;
-            const bitsPerSample = 16;
-            const blockAlign = (numChannels * bitsPerSample) / 8;
-            const byteRate = sampleRate * blockAlign;
-            const dataSize = pcmData.length * pcmData.BYTES_PER_ELEMENT;
-            const buffer = new ArrayBuffer(44 + dataSize);
-            const view = new DataView(buffer);
+            // ===== 4. DOM ELEMENTS =====
+            const screens = {
+                intro: document.getElementById('intro-screen'),
+                start: document.getElementById('start-screen'),
+                app: document.getElementById('app-screen'),
+                results: document.getElementById('results-screen'),
+                leaderboard: document.getElementById('leaderboard-screen')
+            };
+            const themeToggle = document.getElementById('theme-toggle');
+            const topicTitleEl = document.getElementById('topic-title');
+            const timerEl = document.getElementById('timer');
+            const wordCountEl = document.getElementById('word-count');
+            const promptsAreaEl = document.getElementById('prompts-area');
+            const startBtn = document.getElementById('start-btn');
+            const promptBtn = document.getElementById('prompt-btn');
+            const changeTopicBtn = document.getElementById('change-topic-btn');
+            const statusMessageEl = document.getElementById('status-message');
+            const resultsElements = {
+                totalWords: document.getElementById('total-words-result'),
+                promptsUsed: document.getElementById('prompts-used-result'),
+                penalty: document.getElementById('penalty-result'),
+                finalScore: document.getElementById('final-score-result')
+            };
+            const nameInputEl = document.getElementById('name-input');
+            const leaderboardBodyEl = document.getElementById('leaderboard-body');
+            const teacherInfoBtn = document.getElementById('teacher-info-btn');
+            const infographicModal = document.getElementById('infographic-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
 
-            function writeString(view, offset, string) {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
+
+            // ===== 5. CORE FUNCTIONS =====
+            function showScreen(screenId) {
+                for (let id in screens) {
+                    screens[id].style.display = 'none';
+                }
+                screens[screenId].style.display = 'flex';
+            }
+
+            function resetState() {
+                promptsUsed = 0;
+                liveWordCount = 0;
+                finalScore = 0;
+                penalty = 0;
+                finalTranscript = '';
+                isSpeaking = false;
+                topicChangesLeft = 2;
+                currentTopic = {};
+                clearInterval(timerInterval);
+                timerEl.textContent = '1:00';
+                wordCountEl.textContent = '0';
+                promptsAreaEl.innerHTML = '';
+                statusMessageEl.textContent = "Click 'Start Speaking' when you're ready.";
+                startBtn.disabled = false;
+                promptBtn.disabled = true;
+                promptBtn.textContent = 'Use Free Prompt';
+                changeTopicBtn.disabled = false;
+                changeTopicBtn.textContent = `Change Topic (2 left)`;
+            }
+
+            function selectLevel(level) {
+                resetState();
+                currentLevel = level;
+                getNewTopic();
+                showScreen('app');
+            }
+            
+            function getNewTopic() {
+                const levelTopics = topics[currentLevel];
+                if (!levelTopics || levelTopics.length < 1) {
+                    alert('No topics available for this level yet.');
+                    return;
+                }
+                
+                let availableTopics = levelTopics;
+                if (currentTopic && currentTopic.title) {
+                    availableTopics = levelTopics.filter(topic => topic.title !== currentTopic.title);
+                }
+                
+                if (availableTopics.length === 0) {
+                    changeTopicBtn.disabled = true;
+                    alert("No other topics available to change to!");
+                    return;
+                }
+                
+                currentTopic = availableTopics[Math.floor(Math.random() * availableTopics.length)];
+                topicTitleEl.textContent = currentTopic.title;
+                promptsAreaEl.innerHTML = `<p>1. ${currentTopic.prompts[0]}</p>`;
+                promptsUsed = 1;
+            }
+            
+            function changeTopic() {
+                if(topicChangesLeft > 0) {
+                    topicChangesLeft--;
+                    getNewTopic();
+                    changeTopicBtn.textContent = `Change Topic (${topicChangesLeft} left)`;
+                    if(topicChangesLeft === 0) {
+                        changeTopicBtn.disabled = true;
+                    }
+                }
+            }
+
+            function startTalk() {
+                isSpeaking = true;
+                startBtn.disabled = true;
+                promptBtn.disabled = false;
+                changeTopicBtn.disabled = true;
+                statusMessageEl.textContent = 'Listening... 🎤';
+
+                let seconds = 60;
+                timerInterval = setInterval(() => {
+                    seconds--;
+                    const min = Math.floor(seconds / 60);
+                    const sec = seconds % 60;
+                    timerEl.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+                    if (seconds <= 0) {
+                        clearInterval(timerInterval);
+                        showResults();
+                    }
+                }, 1000);
+
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.error("Recognition start error:", e);
+                    statusMessageEl.textContent = "Could not start listening. Please check microphone permissions.";
                 }
             }
             
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + dataSize, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, numChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, byteRate, true);
-            view.setUint16(32, blockAlign, true);
-            view.setUint16(34, bitsPerSample, true);
-            writeString(view, 36, 'data');
-            view.setUint32(40, dataSize, true);
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let newFinalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        newFinalTranscript += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                finalTranscript += newFinalTranscript;
+                const currentLiveTranscript = finalTranscript + interimTranscript;
+                liveWordCount = currentLiveTranscript.trim().split(/\s+/).filter(Boolean).length;
+                wordCountEl.textContent = liveWordCount;
+            };
 
-            const pcm16 = new Int16Array(pcmData.buffer);
-            for (let i = 0; i < pcm16.length; i++) {
-                view.setInt16(44 + i * 2, pcm16[i], true);
+            recognition.onend = () => {
+                if (isSpeaking) {
+                    try {
+                        recognition.start();
+                    } catch(e) {
+                        console.error("Recognition restart error:", e);
+                    }
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                statusMessageEl.textContent = `Error: ${event.error}. Please check permissions.`;
+                isSpeaking = false;
+            };
+
+            function requestPrompt() {
+                if (promptsUsed >= 5) return;
+                if (promptsUsed === 1) {
+                     promptBtn.textContent = 'Request Prompt (-10 words)';
+                }
+                promptsAreaEl.innerHTML += `<p>${promptsUsed + 1}. ${currentTopic.prompts[promptsUsed]}</p>`;
+                penalty += 10;
+                promptsUsed++;
+                if (promptsUsed >= 5) {
+                    promptBtn.disabled = true;
+                    promptBtn.textContent = 'No more prompts';
+                }
             }
 
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-        async function playTopic(text, button) {
-            loadingOverlay.classList.remove('hidden');
-            button.disabled = true;
-
-            try {
-                const apiKey = ""; // The API key is handled by the Canvas environment
-                const googleApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                
-                // Use a public CORS proxy to bypass browser security restrictions
-                const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
-                const proxiedUrl = proxyUrl + googleApiUrl;
-
-                const payload = {
-                    contents: [{
-                        parts: [{ text: `Say in a standard British English accent: ${text}` }]
-                    }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-                
-                const response = await fetch(proxiedUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch. Status: ${response.status}`);
+            function showResults() {
+                isSpeaking = false;
+                if (recognition) {
+                    recognition.stop();
                 }
+                statusMessageEl.textContent = "Time's up! Here are your results.";
+                finalScore = Math.max(0, liveWordCount - penalty);
+                resultsElements.totalWords.textContent = liveWordCount;
+                resultsElements.promptsUsed.textContent = Math.max(0, promptsUsed - 1);
+                resultsElements.penalty.textContent = penalty;
+                resultsElements.finalScore.textContent = finalScore;
+                showScreen('results');
+            }
 
-                const result = await response.json();
-                const part = result?.candidates?.[0]?.content?.parts?.[0];
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType;
+            function saveScore() {
+                const name = nameInputEl.value.trim() || 'Anonymous';
+                const leaderboard = JSON.parse(localStorage.getItem('minuteTalkLeaderboard')) || [];
+                leaderboard.push({ name, score: finalScore, level: currentLevel });
+                leaderboard.sort((a, b) => b.score - a.score);
+                localStorage.setItem('minuteTalkLeaderboard', JSON.stringify(leaderboard));
+                nameInputEl.value = '';
+                displayLeaderboard();
+            }
 
-                if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
-                    const pcmData = base64ToArrayBuffer(audioData);
-                    const pcm16 = new Int16Array(pcmData);
-                    const wavBlob = pcmToWav(pcm16, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-
-                    audio.onended = () => {
-                        URL.revokeObjectURL(audioUrl);
-                    };
-
+            function displayLeaderboard() {
+                const leaderboard = JSON.parse(localStorage.getItem('minuteTalkLeaderboard')) || [];
+                leaderboardBodyEl.innerHTML = '';
+                if (leaderboard.length === 0) {
+                    leaderboardBodyEl.innerHTML = '<tr><td colspan="4">No scores yet. Be the first!</td></tr>';
                 } else {
-                    console.error("Audio data not found in API response", result);
-                    showErrorModal("Sorry, the audio data could not be retrieved from the service.");
+                    leaderboard.forEach((entry, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${index + 1}</td><td>${entry.name}</td><td>${entry.score}</td><td>${entry.level}</td>`;
+                        leaderboardBodyEl.appendChild(row);
+                    });
                 }
-
-            } catch (error) {
-                console.error('Error fetching TTS via proxy:', error);
-                showErrorModal(error.message || "An unexpected error occurred. Please check your connection and try again.");
-            } finally {
-                loadingOverlay.classList.add('hidden');
-                button.disabled = false;
+                showScreen('leaderboard');
             }
-        }
+            
+            function setTheme(theme) {
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    themeToggle.checked = true;
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    themeToggle.checked = false;
+                }
+            }
+
+            // ===== 6. EVENT LISTENERS =====
+            themeToggle.addEventListener('change', () => {
+                const theme = themeToggle.checked ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+                setTheme(theme);
+            });
+
+            teacherInfoBtn.addEventListener('click', () => {
+                infographicModal.style.display = 'flex';
+            });
+            closeModalBtn.addEventListener('click', () => {
+                infographicModal.style.display = 'none';
+            });
+            infographicModal.addEventListener('click', (event) => {
+                if (event.target === infographicModal) {
+                    infographicModal.style.display = 'none';
+                }
+            });
+
+
+            document.getElementById('get-started-btn').addEventListener('click', () => showScreen('start'));
+            document.querySelectorAll('#level-selection .btn').forEach(button => {
+                button.addEventListener('click', () => selectLevel(button.dataset.level));
+            });
+            startBtn.addEventListener('click', startTalk);
+            promptBtn.addEventListener('click', requestPrompt);
+            document.getElementById('submit-score-btn').addEventListener('click', saveScore);
+            changeTopicBtn.addEventListener('click', changeTopic);
+            document.getElementById('view-leaderboard-btn').addEventListener('click', displayLeaderboard);
+            document.getElementById('back-to-start-btn').addEventListener('click', () => showScreen('start'));
+            document.getElementById('try-another-btn').addEventListener('click', () => showScreen('start'));
+            document.getElementById('main-menu-btn').addEventListener('click', () => showScreen('start'));
+            
+            // Load saved theme on startup
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            setTheme(savedTheme);
+        });
     </script>
+
 </body>
 </html>
